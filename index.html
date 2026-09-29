@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriTrace AI | Seed-to-Shelf Food Manufacturing ERP</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vis.js Network for Genealogy Graph -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <!-- Chart.js for Regional Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="bg-[#0b0f17] text-slate-100 font-sans">
+
+    <!-- TOP HEADER -->
+    <header class="top-header">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-amber-600 flex items-center justify-center text-xl font-black shadow-lg shadow-red-500/20">
+                🍅
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-lg font-bold tracking-tight text-white">AgriTrace <span class="text-red-500">AI</span></h1>
+                    <span class="brand-badge">Seed-to-Shelf ERP</span>
+                    <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700">Tiny Dot Foods &bull; PS-2 / PS-8</span>
+                </div>
+                <p class="text-xs text-slate-400">100-Ha Farm &bull; 800 Plants/Plot &bull; Factory Kettles &bull; Multi-Tier Packaging &bull; Regional Sell-Through</p>
+            </div>
+        </div>
+
+        <!-- 2-Minute Judge Walkthrough CTA -->
+        <div class="flex items-center gap-3">
+            <button onclick="startJudgeTour()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-sm font-semibold rounded-lg shadow-lg shadow-red-600/30 transition transform hover:scale-105 active:scale-95">
+                <span>🚀</span>
+                <span>2-Minute Judge Walkthrough</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- GLOBAL KPI STATS BAR -->
+    <div class="bg-[#131b2e] border-b border-slate-800 px-6 py-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div class="p-2.5 bg-slate-900/70 border border-slate-800 rounded-lg">
+                <span class="text-xs text-slate-400 block">🌾 Farm Cultivation</span>
+                <span id="stat-hectares" class="text-lg font-bold text-emerald-400">100 ha</span>
+                <span class="text-[10px] text-slate-500 block">10 plots &bull; 8,000 plants</span>
+            </div>
+            <div class="p-2.5 bg-slate-900/70 border border-slate-800 rounded-lg">
+                <span class="text-xs text-slate-400 block">🍅 Harvested Tomatoes</span>
+                <span id="stat-tomatoes" class="text-lg font-bold text-red-400">37,900 pcs</span>
+                <span class="text-[10px] text-slate-500 block">23,000 kg gross intake</span>
+            </div>
+            <div class="p-2.5 bg-slate-900/70 border border-slate-800 rounded-lg">
+                <span class="text-xs text-slate-400 block">🏭 Cooked Sauce Output</span>
+                <span id="stat-sauce" class="text-lg font-bold text-blue-400">10,290 kg</span>
+                <span class="text-[10px] text-slate-500 block">28° Bx Kissan Standard</span>
+            </div>
+            <div class="p-2.5 bg-slate-900/70 border border-slate-800 rounded-lg">
+                <span class="text-xs text-slate-400 block">🍾 Bottled Inventory</span>
+                <span id="stat-bottles" class="text-lg font-bold text-purple-400">20,580 btls</span>
+                <span class="text-[10px] text-slate-500 block">500g glass SKU</span>
+            </div>
+            <div class="p-2.5 bg-slate-900/70 border border-slate-800 rounded-lg">
+                <span class="text-xs text-slate-400 block">📦 Boxes & Pallets</span>
+                <span id="stat-cartons" class="text-lg font-bold text-cyan-400">856 boxes</span>
+                <span class="text-[10px] text-slate-500 block">43 shipping pallets</span>
+            </div>
+            <div class="p-2.5 bg-slate-900/70 border border-slate-800 rounded-lg">
+                <span class="text-xs text-slate-400 block">🚨 Process Anomalies</span>
+                <span id="stat-anomalies" class="text-lg font-bold text-red-400">1 flagged</span>
+                <span class="text-[10px] text-slate-500 block">AI Isolation Forest</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="bg-[#0e1422] border-b border-slate-800 px-6 py-2 flex gap-2 overflow-x-auto">
+        <button class="nav-tab-btn active" data-tab="genealogy">
+            <span>🌐</span>
+            <span>Batch Genealogy Spine</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="farm">
+            <span>🌾</span>
+            <span>Farm & AI Yield Predictor</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="factory">
+            <span>🏭</span>
+            <span>Factory & Cook Anomaly</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="packaging">
+            <span>📦</span>
+            <span>Packaging & Regional Dispatch</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="sales">
+            <span>📈</span>
+            <span>Regional Sales & PS-8 Optimizer</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="copilot">
+            <span>🤖</span>
+            <span>AI Traceability Copilot</span>
+        </button>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 p-6 max-w-[1600px] w-full mx-auto">
+
+        <!-- ================= TAB 1: GENEALOGY SPINE ================= -->
+        <section id="tab-genealogy" class="tab-content">
+            <!-- Search & Controls Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-4 bg-[#131b2e] p-4 rounded-xl border border-slate-800">
+                <div class="flex items-center gap-3 flex-1 min-w-[320px]">
+                    <div class="relative flex-1">
+                        <input id="trace-query-input" type="text"
+                               placeholder="Scan Bottle QR / Search ID (e.g. BOT-402-00142, PLOT-TN-14, BATCH-SAUCE-402, or Chennai)..."
+                               class="w-full bg-slate-900 border border-slate-700 text-sm rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <button id="trace-search-btn" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition">
+                        Trace Lineage
+                    </button>
+                </div>
+
+                <!-- Batch Quick Switcher -->
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-slate-400 font-medium">Quick Batch Switch:</span>
+                    <select id="batch-select" class="bg-slate-900 border border-slate-700 text-xs text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                        <option value="BATCH-SAUCE-402">Batch #402 (Plot 14 - Kissan Classic 28°Bx) ✅</option>
+                        <option value="BATCH-SAUCE-403">Batch #403 (Plot 07 - High-Brix Madanapalle) ✅</option>
+                        <option value="BATCH-SAUCE-407">Batch #407 (Plot 18 - Boiler Steam Anomaly) 🚨</option>
+                        <option value="BATCH-SAUCE-404">Batch #404 (Plot 22 - Standard Run) ✅</option>
+                        <option value="BATCH-SAUCE-405">Batch #405 (Plot 03 - Bulk Run) ✅</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Main Interactive Canvas + Detail Panel -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Visual Graph (2 cols on desktop) -->
+                <div class="lg:col-span-2 relative">
+                    <div id="genealogy-network"></div>
+                    <div id="graph-loading" class="hidden absolute inset-0 bg-slate-950/70 flex items-center justify-center rounded-xl z-20">
+                        <div class="text-blue-400 text-sm font-medium flex items-center gap-2">
+                            <span class="animate-spin text-xl">&#9696;</span> Resolving Genealogy DAG...
+                        </div>
+                    </div>
+                    <!-- Legend -->
+                    <div class="absolute bottom-3 left-3 bg-slate-900/90 border border-slate-800 px-3 py-2 rounded-lg text-[11px] flex flex-wrap gap-3 text-slate-300 backdrop-blur">
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Farm Plot</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Harvest Lot</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Intake QC</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Factory Cook</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Packaging</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Dispatch</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span> Retail POS</span>
+                    </div>
+                </div>
+
+                <!-- Inspector Drawer -->
+                <div class="detail-panel">
+                    <div class="border-b border-slate-800 pb-3 mb-4 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Batch Node Inspector</span>
+                            <h3 id="node-detail-title" class="font-bold text-white text-base">Node Details</h3>
+                        </div>
+                        <span class="badge badge-blue text-[10px]">Certificate of Analysis</span>
+                    </div>
+                    <div id="node-detail-content">
+                        <p class="text-xs text-slate-400">Click any node in the graph above to inspect soil parameters, QC grades, cooking yield logs, or regional store sales.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: FARM & AI YIELD PREDICTOR ================= -->
+        <section id="tab-farm" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Farm Plots Grid (2 cols) -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-base font-bold text-white">100-Hectare Farm Plots (Roma Processing Tomato)</h2>
+                            <p class="text-xs text-slate-400">Monitored with IoT soil telemetry, weather stations, and precision fertigation.</p>
+                        </div>
+                        <span class="badge badge-green">10 Active Parcels</span>
+                    </div>
+                    <div id="plots-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- AI Pre-Harvest Yield Simulator -->
+                <div class="detail-panel">
+                    <div class="border-b border-slate-800 pb-3 mb-4">
+                        <span class="text-[10px] uppercase tracking-wider text-emerald-400 font-bold block">Machine Learning Simulator</span>
+                        <h3 class="font-bold text-white text-base">AI Yield & Conversion Predictor</h3>
+                        <p class="text-xs text-slate-400 mt-1">Scikit-Learn Random Forest trained on agronomic features to project tomato count and 28°Bx sauce output.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-400">Parcel Area:</span>
+                                <b id="lbl-area" class="text-white">10.0 ha</b>
+                            </div>
+                            <input id="sim-area" type="range" min="5" max="25" step="0.5" value="10.0" class="w-full accent-emerald-500">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-400">Tomato Plants Count:</span>
+                                <b id="lbl-plants" class="text-white">800 plants</b>
+                            </div>
+                            <input id="sim-plants" type="range" min="400" max="2000" step="50" value="800" class="w-full accent-emerald-500">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">Soil pH:</span>
+                                    <b id="lbl-ph" class="text-emerald-400">6.4</b>
+                                </div>
+                                <input id="sim-ph" type="range" min="5.5" max="7.8" step="0.1" value="6.4" class="w-full accent-emerald-500">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">Moisture %:</span>
+                                    <b id="lbl-moisture" class="text-white">65%</b>
+                                </div>
+                                <input id="sim-moisture" type="range" min="50" max="80" step="1" value="65" class="w-full accent-emerald-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">Sunlight (hrs/day):</span>
+                                    <b id="lbl-sunlight" class="text-amber-400">8.0 hrs</b>
+                                </div>
+                                <input id="sim-sunlight" type="range" min="6.0" max="9.5" step="0.1" value="8.0" class="w-full accent-emerald-500">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">Nitrogen PPM:</span>
+                                    <b id="lbl-nitrogen" class="text-white">140 ppm</b>
+                                </div>
+                                <input id="sim-nitrogen" type="range" min="100" max="180" step="5" value="140" class="w-full accent-emerald-500">
+                            </div>
+                        </div>
+
+                        <!-- Prediction Results -->
+                        <div class="mt-4 p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400">Predicted Raw Harvest:</span>
+                                <b id="res-harvest-tons" class="text-emerald-400 font-mono text-sm">38.5 tons</b>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400">Estimated Plucked Fruit:</span>
+                                <b id="res-tomato-count" class="text-white font-mono">26,200 tomatoes</b>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400">Factory Sauce Recovery:</span>
+                                <b id="res-sauce-kg" class="text-blue-400 font-mono text-sm">16,000 kg sauce</b>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400">Finished Bottles (500g):</span>
+                                <b id="res-bottles-count" class="text-purple-400 font-mono text-sm font-bold">32,000 bottles</b>
+                            </div>
+                        </div>
+
+                        <div class="mt-2">
+                            <span class="text-[11px] font-semibold text-slate-400 block mb-1.5">AI Agronomic Recommendations:</span>
+                            <ul id="res-recommendations" class="space-y-1">
+                                <!-- Rendered by JS -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: FACTORY & ANOMALIES ================= -->
+        <section id="tab-factory" class="tab-content hidden">
+            <!-- Anomaly Alerts Box -->
+            <div id="anomaly-alert-container">
+                <!-- Rendered by JS -->
+            </div>
+
+            <div class="bg-[#131b2e] border border-slate-800 rounded-xl overflow-hidden mt-4">
+                <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-white text-base">Factory Cooking Runs (Kettles K-01 to K-04)</h3>
+                        <p class="text-xs text-slate-400">Raw tomato crushing, seed separation, vacuum evaporation & sugar/spice concentration.</p>
+                    </div>
+                    <span class="badge badge-blue">Target: 28° Bx Standard</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900/80 text-xs text-slate-400 uppercase">
+                            <tr>
+                                <th class="py-3 px-4">Batch ID</th>
+                                <th class="py-3 px-4">Harvest Lot</th>
+                                <th class="py-3 px-4">Kettle</th>
+                                <th class="py-3 px-4">Tomato Intake</th>
+                                <th class="py-3 px-4">Sauce Output</th>
+                                <th class="py-3 px-4">Yield %</th>
+                                <th class="py-3 px-4">Finished Brix</th>
+                                <th class="py-3 px-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="factory-batches-tbody" class="divide-y divide-slate-800/60">
+                            <!-- Rendered by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: PACKAGING & LOGISTICS ================= -->
+        <section id="tab-packaging" class="tab-content hidden space-y-6">
+            <div>
+                <h3 class="font-bold text-white text-base mb-1">Multi-Tier Packaging Genealogy</h3>
+                <p class="text-xs text-slate-400">Every 500g bottle inherits carton and pallet identifiers back to the source factory run.</p>
+            </div>
+            <div id="packaging-cards" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Rendered by JS -->
+            </div>
+
+            <!-- Logistics Dispatches -->
+            <div class="bg-[#131b2e] border border-slate-800 rounded-xl overflow-hidden mt-6">
+                <div class="p-4 border-b border-slate-800">
+                    <h3 class="font-bold text-white text-base">Regional Warehouse Dispatches & Cold-Chain Monitoring</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900/80 text-xs text-slate-400 uppercase">
+                            <tr>
+                                <th class="py-3 px-4">Dispatch ID</th>
+                                <th class="py-3 px-4">Batch Code</th>
+                                <th class="py-3 px-4">Destination Hub</th>
+                                <th class="py-3 px-4">Carrier & Truck</th>
+                                <th class="py-3 px-4">Temperature</th>
+                                <th class="py-3 px-4">Delivery Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dispatches-tbody" class="divide-y divide-slate-800/60">
+                            <!-- Rendered by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: SALES & PS-8 CAPACITY OPTIMIZER ================= -->
+        <section id="tab-sales" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Regional Chart -->
+                <div class="metric-card">
+                    <h3 class="font-bold text-white text-base mb-1">Regional Sell-Through Velocity (Bottles Sold vs % Sell-Through)</h3>
+                    <p class="text-xs text-slate-400 mb-4">Tracking batch velocity across Quick Commerce and Modern Trade supermarket dark stores.</p>
+                    <div class="h-64">
+                        <canvas id="sales-region-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- PS-8 Capacity Optimizer Simulator -->
+                <div class="metric-card">
+                    <div class="border-b border-slate-800 pb-3 mb-4">
+                        <span class="badge badge-purple text-[10px] mb-1">PS-8 Constrained Matching Engine</span>
+                        <h3 class="font-bold text-white text-base">Multi-Channel Capacity Allocation</h3>
+                        <p class="text-xs text-slate-400 mt-1">Solves the hard factory ceiling bottleneck between Quick-Commerce (D2C) and Supermarket Chains (B2B).</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-400">Monthly Factory Capacity Ceiling:</span>
+                                <b id="lbl-opt-capacity" class="text-white">50,000 btls</b>
+                            </div>
+                            <input id="opt-capacity" type="range" min="30000" max="80000" step="5000" value="50000" class="w-full accent-purple-500">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">D2C Demand (₹38 margin):</span>
+                                    <b id="lbl-opt-d2c" class="text-purple-400">28,000 btls</b>
+                                </div>
+                                <input id="opt-d2c" type="range" min="10000" max="45000" step="1000" value="28000" class="w-full accent-purple-500">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">B2B Demand (₹24 margin):</span>
+                                    <b id="lbl-opt-b2b" class="text-blue-400">40,000 btls</b>
+                                </div>
+                                <input id="opt-b2b" type="range" min="20000" max="60000" step="2000" value="40000" class="w-full accent-purple-500">
+                            </div>
+                        </div>
+
+                        <!-- Solver Output -->
+                        <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                            <div>
+                                <span class="text-slate-400 block">D2C Allocation:</span>
+                                <b id="opt-alloc-d2c" class="text-purple-400 text-sm font-mono font-bold">22,000 btls</b>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">B2B Allocation:</span>
+                                <b id="opt-alloc-b2b" class="text-blue-400 text-sm font-mono font-bold">28,000 btls</b>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Projected Profit:</span>
+                                <b id="opt-profit" class="text-emerald-400 text-sm font-mono font-bold">INR 13.64L</b>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Fulfillment Rate:</span>
+                                <b id="opt-fulfillment" class="text-amber-400 text-sm font-mono font-bold">73.5%</b>
+                            </div>
+                        </div>
+
+                        <p id="opt-summary" class="text-xs text-slate-300 italic"></p>
+                        <div>
+                            <span class="text-[11px] font-semibold text-slate-400 block mb-1">AI Bottleneck Mitigations:</span>
+                            <ul id="opt-mitigations" class="space-y-1"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Retail Performance Table -->
+            <div class="bg-[#131b2e] border border-slate-800 rounded-xl overflow-hidden">
+                <div class="p-4 border-b border-slate-800">
+                    <h3 class="font-bold text-white text-base">Store-Level Sell-Through & Customer Feedback</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900/80 text-xs text-slate-400 uppercase">
+                            <tr>
+                                <th class="py-3 px-4">Store Name</th>
+                                <th class="py-3 px-4">Channel</th>
+                                <th class="py-3 px-4">City / Region</th>
+                                <th class="py-3 px-4">Batch ID</th>
+                                <th class="py-3 px-4">Units Sold / Delivered</th>
+                                <th class="py-3 px-4">Sell-Through %</th>
+                                <th class="py-3 px-4">Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="retail-tbody" class="divide-y divide-slate-800/60">
+                            <!-- Rendered by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 6: AI COPILOT CHAT ================= -->
+        <section id="tab-copilot" class="tab-content hidden">
+            <div class="max-w-3xl mx-auto bg-[#131b2e] border border-slate-800 rounded-2xl flex flex-col h-[650px] overflow-hidden shadow-2xl">
+                <!-- Copilot Header -->
+                <div class="p-4 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold">🤖</div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm">AgriTrace Intelligent Query Copilot</h3>
+                            <span class="text-xs text-emerald-400 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Connected to Seed-to-Shelf Knowledge Graph
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Scroll Area -->
+                <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3">
+                    <div class="flex justify-start mb-3">
+                        <div class="max-w-xl p-3.5 rounded-xl text-sm bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none">
+                            Hello! I am your <b>AgriTrace AI Copilot</b>. Ask me anything about farm plots, harvest lots, factory sauce yields, packaging barcodes, or regional store sell-through!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Prompt Chips -->
+                <div class="px-4 py-2 bg-slate-900/40 border-t border-slate-800/60 flex flex-wrap gap-2 text-xs">
+                    <button class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition"
+                            onclick="document.getElementById('chat-query-input').value = this.textContent; handleChatSubmit();">
+                        Show Plot 14 journey to Chennai stores
+                    </button>
+                    <button class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition"
+                            onclick="document.getElementById('chat-query-input').value = this.textContent; handleChatSubmit();">
+                        Why was Batch 407 flagged as an anomaly?
+                    </button>
+                    <button class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition"
+                            onclick="document.getElementById('chat-query-input').value = this.textContent; handleChatSubmit();">
+                        Calculate yield for 800 plants in 10 hectares
+                    </button>
+                    <button class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition"
+                            onclick="document.getElementById('chat-query-input').value = this.textContent; handleChatSubmit();">
+                        Trace bottle BOT-402-00142
+                    </button>
+                </div>
+
+                <!-- Chat Input Form -->
+                <div class="p-3 bg-slate-900 border-t border-slate-800 flex gap-2">
+                    <input id="chat-query-input" type="text"
+                           placeholder="Type a natural language query (e.g. 'Show me batches with low yield' or 'Trace bottle BOT-402-00142')..."
+                           class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+                    <button id="chat-send-btn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm transition">
+                        Ask AI
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 2-MINUTE JUDGE TOUR MODAL OVERLAY -->
+    <div id="tour-modal" class="tour-modal fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-[#131b2e] border-2 border-red-500/70 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🏆</span>
+                    <span id="tour-step-counter" class="text-xs font-bold uppercase tracking-wider text-red-400">Step 1 of 6</span>
+                </div>
+                <button onclick="closeTourModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+            </div>
+            <div>
+                <h3 id="tour-title" class="text-lg font-bold text-white mb-2">Step Title</h3>
+                <p id="tour-desc" class="text-sm text-slate-300 leading-relaxed">Step Description</p>
+            </div>
+            <div class="flex justify-between items-center pt-3 border-t border-slate-800">
+                <button onclick="prevTourStep()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded text-slate-300 transition">
+                    &larr; Previous
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="closeTourModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded text-slate-400 transition">
+                        Exit Tour
+                    </button>
+                    <button onclick="nextTourStep()" class="px-5 py-1.5 bg-gradient-to-r from-red-600 to-amber-600 text-xs font-semibold rounded text-white shadow transition">
+                        Next &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
